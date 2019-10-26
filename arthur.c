@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define NUM_VERTS 6
+
 typedef struct {
     int nVertices, ehPonderado;
     int **pesos, **arestas;
@@ -9,16 +11,21 @@ typedef struct {
 
 Grafo * criaGrafo(int vertices, int ehPonderado);
 void inserirAresta(Grafo **gr, int origem, int destino, int peso, int ehDigrafo);
-int buscaProfundidade(Grafo **gr, int origem, int *visitados, int cidades, int passos, int dinheiro);
+int ** buscaProfundidade(Grafo **gr, int origem, int *visitados, int **rotaFinal, int passos, int dinheiro);
 
 int contem(int *lista, int tam, int num);
 
+// Funções para registrar rota
+int length(int *lista);
+void copyList(int **copia, int *original);
+
 int main(){
     Grafo *grafo;
-    int *visitados = malloc(sizeof(int)*3);
-    int cidades = 0;
+    int *visitados = calloc(NUM_VERTS, sizeof(int));
+    int **rotaFinal = malloc(sizeof(int*));
+    rotaFinal[0] = calloc(NUM_VERTS, sizeof(int));
 
-    grafo = criaGrafo(6, 1);
+    grafo = criaGrafo(NUM_VERTS, 1);
     inserirAresta(&grafo, 1, 2, 3, 0);
     inserirAresta(&grafo, 1, 5, 4, 0);
     inserirAresta(&grafo, 1, 6, 6, 0);
@@ -34,7 +41,9 @@ int main(){
     inserirAresta(&grafo, 3, 1, 4, 0);
     */
 
-    printf("cidades: %d\n", buscaProfundidade(&grafo, 1, visitados, 0, 0, 16));
+    rotaFinal = buscaProfundidade(&grafo, 1, visitados, rotaFinal, 0, 16);
+    for(int i = 1; i < NUM_VERTS; i++) printf("%d ", rotaFinal[0][i]);
+    printf("\n");
 
     return 0;
 }
@@ -82,22 +91,24 @@ void inserirAresta(Grafo **gr, int origem, int destino, int peso, int ehDigrafo)
     }
 }
 
-int buscaProfundidade(Grafo **gr, int origem, int *visitados, int cidades, int passos, int dinheiro){
+int ** buscaProfundidade(Grafo **gr, int origem, int *visitados, int **rotaFinal, int passos, int dinheiro){
     if(gr != NULL) {
         visitados[passos] = origem;
 
-        cidades = cidades > passos ? cidades : passos;
+        if(length(*rotaFinal) < length(visitados)){
+            copyList(rotaFinal, visitados);
+        }
 
         for(int i = 0; i < (*gr)->grau[origem-1]; i++){
             if(!contem(visitados, passos, (*gr)->arestas[origem-1][i]) && dinheiro >= (*gr)->pesos[origem-1][i]){
-                int retorno = buscaProfundidade(gr, (*gr)->arestas[origem-1][i], visitados, cidades, passos+1, dinheiro-(*gr)->pesos[origem-1][i]);
-                cidades = cidades > retorno ? cidades : retorno;
+                int **retorno = buscaProfundidade(gr, (*gr)->arestas[origem-1][i], visitados, rotaFinal, passos+1, dinheiro-(*gr)->pesos[origem-1][i]);
+                if(length(*rotaFinal) < length(*retorno)) rotaFinal = retorno;
                 visitados[passos+1] = 0;
             }
         }
 
     }
-    return cidades;
+    return rotaFinal;
 }
 
 int contem(int *lista, int tam, int num){
@@ -107,4 +118,14 @@ int contem(int *lista, int tam, int num){
         if(lista[i] == num) contem = 1;
     
     return contem;
+}
+
+int length(int *lista){
+    int cont = 0;
+    for(int i = 1; i < NUM_VERTS && lista[i] != 0; i++, cont++);
+    return cont;
+}
+
+void copyList(int **copia, int *original){
+    for(int i = 0; i < NUM_VERTS && original[i] != 0; i++, copia[0][i] = original[i]);
 }
