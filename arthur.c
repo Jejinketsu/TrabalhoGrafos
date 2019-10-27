@@ -3,21 +3,34 @@
 
 #define NUM_VERTS 6
 
+#define WHITE 0
+#define GRAY 1
+#define BLACK 2
+
 typedef struct {
     int nVertices, ehPonderado;
     int **pesos, **arestas;
-    int *grau;
+    int *grau, *cor, *dist, *anterior;
 } Grafo;
+
+typedef struct Fila{
+    int vertice;
+    struct Fila *prox; 
+} Fila;
 
 Grafo * criaGrafo(int vertices, int ehPonderado);
 void inserirAresta(Grafo **gr, int origem, int destino, int peso, int ehDigrafo);
 int ** buscaProfundidade(Grafo **gr, int origem, int *visitados, int **rotaFinal, int passos, int dinheiro);
+void buscaLargura(Grafo **gr, int origem);
 
 int contem(int *lista, int tam, int num);
 
 // Funções para registrar rota
 int length(int *lista);
 void copyList(int **copia, int *original);
+Fila *enqueue(Fila *fila, int vertice);
+Fila *dequeue(Fila **fila);
+void showFila(Fila *fila);
 
 int main(){
     Grafo *grafo;
@@ -42,9 +55,13 @@ int main(){
     */
 
     rotaFinal = buscaProfundidade(&grafo, 1, visitados, rotaFinal, 0, 16);
+    printf("Melhor rota com profundidade: ");
     for(int i = 1; i < NUM_VERTS; i++) printf("%d ", rotaFinal[0][i]);
     printf("\n");
 
+    buscaLargura(&grafo, 1);
+    for(int i = 0; i < NUM_VERTS; i++) printf("%d ", grafo->dist[i]);
+    printf("\n");
     return 0;
 }
 
@@ -55,7 +72,11 @@ Grafo * criaGrafo(int vertices, int ehPonderado){
     if(gr != NULL){
         gr->nVertices = vertices;
         gr->ehPonderado = (ehPonderado != 0)? 1:0;
+
         gr->grau = (int*) calloc(vertices, sizeof(int));
+        gr->cor = (int*) calloc(vertices, sizeof(int)); 
+        gr->dist = (int*) calloc(vertices, sizeof(int));
+        gr->anterior = (int*) calloc(vertices, sizeof(int));
 
         gr->arestas = (int**) malloc(vertices*sizeof(int*));
         for(int i = 0; i < vertices; i++)
@@ -111,6 +132,27 @@ int ** buscaProfundidade(Grafo **gr, int origem, int *visitados, int **rotaFinal
     return rotaFinal;
 }
 
+void buscaLargura(Grafo **gr, int origem){
+    (*gr)->cor[origem-1] = GRAY;
+    (*gr)->dist[origem-1] = 0;
+    (*gr)->anterior[origem-1] = -1;
+    Fila *agendados = NULL;
+
+    agendados = enqueue(agendados, origem);
+    while(agendados != NULL){
+        Fila *aux = dequeue(&agendados);
+        for(int i = 0; i < (*gr)->grau[aux->vertice-1]; i++){
+            if((*gr)->cor[((*gr)->arestas[aux->vertice-1][i])-1] == WHITE){
+                (*gr)->cor[((*gr)->arestas[aux->vertice-1][i])-1] = GRAY;
+                (*gr)->dist[((*gr)->arestas[aux->vertice-1][i])-1] = ((*gr)->dist[aux->vertice-1])+1;
+                (*gr)->anterior[((*gr)->arestas[aux->vertice-1][i])-1] = aux->vertice;
+                agendados = enqueue(agendados, (*gr)->arestas[aux->vertice-1][i]);
+            }
+        }
+        (*gr)->cor[aux->vertice-1] = BLACK;
+    }
+}
+
 int contem(int *lista, int tam, int num){
     int contem = 0;
 
@@ -128,4 +170,34 @@ int length(int *lista){
 
 void copyList(int **copia, int *original){
     for(int i = 0; i < NUM_VERTS && original[i] != 0; i++, copia[0][i] = original[i]);
+}
+
+Fila *enqueue(Fila *fila, int vertice){
+    Fila *elemento = malloc(sizeof(Fila));
+    elemento->vertice = vertice;
+    elemento->prox = NULL;
+
+    Fila *aux;
+    if(fila != NULL){
+        for(aux = fila; aux != NULL && aux->prox != NULL; aux = aux->prox);
+
+        if(aux == NULL) fila = elemento;
+        else aux->prox = elemento;
+    }
+    else fila = elemento;
+    
+    return fila;
+}
+
+Fila *dequeue(Fila **fila){
+    Fila *aux = (*fila);
+    (*fila) = (*fila)->prox;
+    return aux;
+}
+
+void showFila(Fila *fila){
+    if(fila != NULL){
+        printf("%d ", fila->vertice);
+        showFila(fila->prox);
+    }
 }

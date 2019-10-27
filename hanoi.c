@@ -5,16 +5,27 @@
 #define DISCOS 4
 #define PINOS 3
 
+#define WHITE 0
+#define GRAY 1
+#define BLACK 2
+
 typedef struct {
     int nVertices, ehPonderado;
     int **pesos, **arestas;
-    int *grau;
+    int *grau, *cor, *dist, *anterior;
 } Grafo;
+
+typedef struct Fila{
+    int vertice;
+    struct Fila *prox; 
+} Fila;
+
 
 void printEstado(int *atual);
 int contem(int *lista, int tam, int num);
 Grafo * criaGrafo(int vertices, int ehPonderado);
 void inserirAresta(Grafo **gr, int origem, int destino, int peso, int ehDigrafo);
+void buscaLargura(Grafo **gr, int origem);
 
 // Funções para montar o grafo
 void montaHanoi(Grafo **gr, int **estados, int tamanho);
@@ -25,8 +36,11 @@ int posDiff(int *vetor1, int *vetor2, int tamanho);
 int contEquals(int *vetor1, int *vetor2, int tamanho);
 
 // Funções para registrar rota
-int length(int *lista);
-void copyList(int **copia, int *original);
+int length(int *lista, int tam);
+void copyList(int **copia, int *original, int tam);
+Fila *enqueue(Fila *fila, int vertice);
+Fila *dequeue(Fila **fila);
+void showFila(Fila *fila);
 
 int main(){
 
@@ -41,28 +55,21 @@ int main(){
         for(int j = 0; j < 3; j++){
             for(int k = 0; k < 3; k++){
                 for(int l = 0; l < 3; l++){
-                    estados[cont] = malloc(sizeof(int)*4);
+                    estados[cont] = malloc(sizeof(int)*3);
                     estados[cont][0] = i+1;
                     estados[cont][1] = j+1;
                     estados[cont][2] = k+1;
                     estados[cont][3] = l+1;
                     cont++;
-                } 
+                }
             }
         }
     }
 
-    printf("%d \n", comparaEstado(estados[9], estados[0], DISCOS));
-
     montaHanoi(&grafo, estados, possibilidades);
-    printf("\n");
-    for(int i = 0; i < possibilidades; i++){
-        for(int j = 0; j < possibilidades; j++){
-            printf("%d ", grafo->arestas[j][i]);
-        }
-        printf("\n");
-    }
+    buscaLargura(&grafo, 1);
     
+    return 0;
 }
 
 Grafo * criaGrafo(int vertices, int ehPonderado){
@@ -72,7 +79,11 @@ Grafo * criaGrafo(int vertices, int ehPonderado){
     if(gr != NULL){
         gr->nVertices = vertices;
         gr->ehPonderado = (ehPonderado != 0)? 1:0;
+
         gr->grau = (int*) calloc(vertices, sizeof(int));
+        gr->cor = (int*) calloc(vertices, sizeof(int)); 
+        gr->dist = (int*) calloc(vertices, sizeof(int));
+        gr->anterior = (int*) calloc(vertices, sizeof(int));
 
         gr->arestas = (int**) malloc(vertices*sizeof(int*));
         for(int i = 0; i < vertices; i++)
@@ -108,6 +119,27 @@ void inserirAresta(Grafo **gr, int origem, int destino, int peso, int ehDigrafo)
     }
 }
 
+void buscaLargura(Grafo **gr, int origem){
+    (*gr)->cor[origem-1] = GRAY;
+    (*gr)->dist[origem-1] = 0;
+    (*gr)->anterior[origem-1] = -1;
+    Fila *agendados = NULL;
+
+    agendados = enqueue(agendados, origem);
+    while(agendados != NULL){
+        Fila *aux = dequeue(&agendados);
+        for(int i = 0; i < (*gr)->grau[aux->vertice-1]; i++){
+            if((*gr)->cor[((*gr)->arestas[aux->vertice-1][i])-1] == WHITE){
+                (*gr)->cor[((*gr)->arestas[aux->vertice-1][i])-1] = GRAY;
+                (*gr)->dist[((*gr)->arestas[aux->vertice-1][i])-1] = ((*gr)->dist[aux->vertice-1])+1;
+                (*gr)->anterior[((*gr)->arestas[aux->vertice-1][i])-1] = aux->vertice;
+                agendados = enqueue(agendados, (*gr)->arestas[aux->vertice-1][i]);
+            }
+        }
+        (*gr)->cor[aux->vertice-1] = BLACK;
+    }
+}
+
 void printEstado(int *atual){
     printf("(%d,%d,%d,%d)", atual[0], atual[1], atual[2], atual[3]);
 }
@@ -115,7 +147,9 @@ void printEstado(int *atual){
 void montaHanoi(Grafo **gr, int **estados, int tamanho){
     for(int i = 0; i < tamanho; i++){
         for(int j = 0; j < tamanho; j++){
-            (*gr)->arestas[j][i] = comparaEstado(estados[j], estados[i], DISCOS);
+            if(comparaEstado(estados[j], estados[i], DISCOS)){
+                inserirAresta(gr, i+1, j+1, 0, 1);
+            }
         }
     }
 }
@@ -172,12 +206,42 @@ int contem(int *lista, int tam, int num){
     return contem;
 }
 
-int length(int *lista){
+int length(int *lista, int tam){
     int cont = 0;
-    for(int i = 1; i < NUM_VERTS && lista[i] != 0; i++, cont++);
+    for(int i = 1; i < tam && lista[i] != 0; i++, cont++);
     return cont;
 }
 
-void copyList(int **copia, int *original){
-    for(int i = 0; i < NUM_VERTS && original[i] != 0; i++, copia[0][i] = original[i]);
+void copyList(int **copia, int *original, int tam){
+    for(int i = 0; i < tam && original[i] != 0; i++, copia[0][i] = original[i]);
+}
+
+Fila *enqueue(Fila *fila, int vertice){
+    Fila *elemento = malloc(sizeof(Fila));
+    elemento->vertice = vertice;
+    elemento->prox = NULL;
+
+    Fila *aux;
+    if(fila != NULL){
+        for(aux = fila; aux != NULL && aux->prox != NULL; aux = aux->prox);
+
+        if(aux == NULL) fila = elemento;
+        else aux->prox = elemento;
+    }
+    else fila = elemento;
+    
+    return fila;
+}
+
+Fila *dequeue(Fila **fila){
+    Fila *aux = (*fila);
+    (*fila) = (*fila)->prox;
+    return aux;
+}
+
+void showFila(Fila *fila){
+    if(fila != NULL){
+        printf("%d ", fila->vertice);
+        showFila(fila->prox);
+    }
 }
