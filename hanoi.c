@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define DISCOS 4
+#define DISCOS 3
 #define PINOS 3
 
 #define WHITE 0
@@ -25,7 +25,8 @@ void printEstado(int *atual);
 int contem(int *lista, int tam, int num);
 Grafo * criaGrafo(int vertices, int ehPonderado);
 void inserirAresta(Grafo **gr, int origem, int destino, int peso, int ehDigrafo);
-void buscaLargura(Grafo **gr, int origem);
+int ** montaRota(Grafo **gr, int origem, int destino, int *visitados, int **rotaFinal, int passos);
+int ** buscaLargura(Grafo **gr, int origem, int destino, int *visitados, int **rotaFinal, int passos);
 
 // Funções para montar o grafo
 void montaHanoi(Grafo **gr, int **estados, int tamanho);
@@ -37,7 +38,7 @@ int contEquals(int *vetor1, int *vetor2, int tamanho);
 
 // Funções para registrar rota
 int length(int *lista, int tam);
-void copyList(int **copia, int *original, int tam);
+void copyList(int **copia, int *original, int tam, int local);
 Fila *enqueue(Fila *fila, int vertice);
 Fila *dequeue(Fila **fila);
 void showFila(Fila *fila);
@@ -49,26 +50,46 @@ int main(){
     Grafo *grafo = criaGrafo(possibilidades, 0);
 
     int **estados = malloc(sizeof(int *)*possibilidades);
+
+    int *visitados = calloc(possibilidades, sizeof(int));
+    int **rotaFinal = malloc(sizeof(int*)*2);
+    rotaFinal[0] = calloc(possibilidades, sizeof(int));
+    rotaFinal[1] = calloc(possibilidades, sizeof(int));
+
     int cont = 0;
 
     for(int i = 0; i < 3; i++){
         for(int j = 0; j < 3; j++){
             for(int k = 0; k < 3; k++){
-                for(int l = 0; l < 3; l++){
-                    estados[cont] = malloc(sizeof(int)*3);
-                    estados[cont][0] = i+1;
-                    estados[cont][1] = j+1;
-                    estados[cont][2] = k+1;
-                    estados[cont][3] = l+1;
-                    cont++;
-                }
+                estados[cont] = malloc(sizeof(int)*3);
+                estados[cont][0] = i+1;
+                estados[cont][1] = j+1;
+                estados[cont][2] = k+1;
+                cont++;
             }
         }
     }
 
     montaHanoi(&grafo, estados, possibilidades);
-    buscaLargura(&grafo, 1);
-    
+
+    rotaFinal = buscaLargura(&grafo, 1, 27, visitados, rotaFinal, 0);
+    printf("Maior rota: ");
+    for(int i = 1; i < possibilidades && rotaFinal[0][i] != 0; i++) printf("%d ", rotaFinal[0][i]);
+    printf("\n");
+
+    printf("Menor rota: ");
+    for(int i = 1; i < possibilidades && rotaFinal[1][i] != 0; i++) printf("%d ", rotaFinal[1][i]);
+    printf("\n");
+
+    for(int i = 0; i < possibilidades; i++) printf("%d ", grafo->dist[i]);
+    printf("\n");
+
+    /*
+    for(int i = 0; i < possibilidades; i++) {
+        printEstado(estados[i]);
+        printf(" %d\n", (i+1));
+    }
+    */
     return 0;
 }
 
@@ -119,7 +140,7 @@ void inserirAresta(Grafo **gr, int origem, int destino, int peso, int ehDigrafo)
     }
 }
 
-void buscaLargura(Grafo **gr, int origem){
+int ** buscaLargura(Grafo **gr, int origem, int destino, int *visitados, int **rotaFinal, int passos){
     (*gr)->cor[origem-1] = GRAY;
     (*gr)->dist[origem-1] = 0;
     (*gr)->anterior[origem-1] = -1;
@@ -138,10 +159,36 @@ void buscaLargura(Grafo **gr, int origem){
         }
         (*gr)->cor[aux->vertice-1] = BLACK;
     }
+    return montaRota(gr, origem, destino, visitados, rotaFinal, passos);
+}
+
+int ** montaRota(Grafo **gr, int origem, int destino, int *visitados, int **rotaFinal, int passos){
+    if(gr != NULL) {
+        int tamanho = pow(PINOS, DISCOS);
+        visitados[passos] = origem;
+
+        if(length(rotaFinal[0], tamanho) < length(visitados, tamanho)){
+            copyList(rotaFinal, visitados, tamanho, 0);
+        } else {
+            copyList(rotaFinal, visitados, tamanho, 1);
+        }
+
+        if(origem != destino){
+            for(int i = 0; i < (*gr)->grau[origem-1]; i++){
+                if(!contem(visitados, passos, (*gr)->arestas[origem-1][i]) && (*gr)->dist[(*gr)->arestas[origem-1][i]] >= (*gr)->dist[origem-1]){
+                    int **retorno = montaRota(gr, (*gr)->arestas[origem-1][i], destino, visitados, rotaFinal, passos+1);
+                    if(length(*rotaFinal, tamanho) < length(*retorno, tamanho)) rotaFinal = retorno;
+                    visitados[passos+1] = 0;
+                }
+            }
+        }
+
+    }
+    return rotaFinal;
 }
 
 void printEstado(int *atual){
-    printf("(%d,%d,%d,%d)", atual[0], atual[1], atual[2], atual[3]);
+    printf("(%d,%d,%d)", atual[0], atual[1], atual[2]);
 }
 
 void montaHanoi(Grafo **gr, int **estados, int tamanho){
@@ -212,8 +259,8 @@ int length(int *lista, int tam){
     return cont;
 }
 
-void copyList(int **copia, int *original, int tam){
-    for(int i = 0; i < tam && original[i] != 0; i++, copia[0][i] = original[i]);
+void copyList(int **copia, int *original, int tam, int local){
+    for(int i = 0; i < tam && original[i] != 0; i++, copia[local][i] = original[i]);
 }
 
 Fila *enqueue(Fila *fila, int vertice){
