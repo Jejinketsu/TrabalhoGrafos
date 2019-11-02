@@ -39,24 +39,26 @@ int main(){
     rotaFinal[0] = calloc(possibilidades, sizeof(int));
 
     geraEstados(estados);
-
-    montaTubo(&grafo, estados, possibilidades);
-    
+    /* mostrar todos os estados
     for(int i = 0; i < possibilidades; i++) {
         printf("%d ", i+1);
         printEstado(estados[i]);
     }
-    
-    
-    for(int i = 0; i < possibilidades; i++) printEstado(estados[grafo->arestas[i]]);
+    */
+    montaTubo(&grafo, estados, possibilidades);
+    /* mostrar as adjacencias
+    for(int i = 0; i < possibilidades; i++) printf("%d ", grafo->arestas[i]);
+    printf("\n");
+    */
 
-    rotaFinal = montaRota(&grafo, 1, 31, visitados, rotaFinal, 0);
+    rotaFinal = montaRota(&grafo, 13, 31, visitados, rotaFinal, 0);
     
     printf("Menor rota: ");
     for(int i = 1; i < possibilidades && rotaFinal[0][i] != 0; i++) printf("%d ", rotaFinal[0][i]);
     printf("\n");
     
     return 0;
+
 }
 
 Grafo * criaGrafo(int vertices, int ehPonderado){
@@ -107,7 +109,7 @@ void geraEstados(int **estados){
                     estados[cont][1] = j;
                     estados[cont][2] = k;
                     estados[cont][3] = l;
-                    printf("%d (%d,%d,%d,%d)\n", cont+1, estados[cont][0], estados[cont][1], estados[cont][2], estados[cont][3]);
+                    //printf("%d (%d,%d,%d,%d)\n", cont+1, estados[cont][0], estados[cont][1], estados[cont][2], estados[cont][3]);
                     cont++;
                 }
             }
@@ -121,7 +123,7 @@ void geraEstados(int **estados){
                 estados[cont][0] = i;
                 estados[cont][1] = j;
                 estados[cont][2] = k;
-                printf("%d (%d,%d,%d)\n", cont+1, estados[cont][0], estados[cont][1], estados[cont][2]);
+                //printf("%d (%d,%d,%d)\n", cont+1, estados[cont][0], estados[cont][1], estados[cont][2]);
                 cont++;
             }
         }
@@ -132,20 +134,20 @@ void geraEstados(int **estados){
             estados[cont] = calloc(2, sizeof(int));
             estados[cont][0] = i;
             estados[cont][1] = j;
-            printf("%d (%d,%d)\n", cont+1, estados[cont][0], estados[cont][1]);
+            //printf("%d (%d,%d)\n", cont+1, estados[cont][0], estados[cont][1]);
             cont++;
         }
     }
     for(int i = -1; i < 2; i+=2) {
         estados[cont] = calloc(1, sizeof(int));
         estados[cont][0] = i;
-        printf("%d (%d)\n", cont+1, estados[cont][0]);
+        //printf("%d (%d)\n", cont+1, estados[cont][0]);
         cont++;
     }
 
     estados[cont] = calloc(1, sizeof(int));
     estados[cont][0] = 0;
-    printf("%d (%d)\n", cont+1, estados[cont][0]);
+    //printf("%d (%d)\n", cont+1, estados[cont][0]);
     cont++;
 }
 
@@ -179,16 +181,27 @@ void montaTubo(Grafo **gr, int **estados, int tam){
 }
 
 int * proxEstado(int *estado){
+    int *aux;
+    //printf("estado: "); printEstado(estado);
     if(temColisao(estado)){
+        //printf("Tem colisao\n");
         if(temSaida(estado)){
-            estado = resolveSaida(estado);
+            //printf("Tem saida\n");
+            aux = resolveSaida(estado);
+            estado = aux;
+            //printf("aux pos saida: "); printEstado(aux);
         }
-        estado = resolveColisao(estado);
+        aux = resolveColisao(estado);
+        //printf("aux pos colisao: "); printEstado(aux);
     } else if(temSaida(estado)){
-        estado = resolveSaida(estado);
+        //printf("Tem saida\n");
+        aux = resolveSaida(estado);
+        //printf("aux pos saida: "); printEstado(aux);
     }
 
-    return estado;
+    //printf("---------------\n");
+
+    return aux;
 }
 
 int temColisao(int *estado){
@@ -229,15 +242,21 @@ int * resolveSaida(int *estado){
 
 int * resolveColisao(int *estado){
     int tam = tamEstado(estado);
+    int *aux = calloc(tam, sizeof(int));
+
+    for(int i = 0; i < tam; i++){
+        aux[i] = estado[i];
+    }
+
     for(int i = 0; i < tam-1; i++){
-        if(estado[i] == 1 && estado[i+1] == -1){
-            estado[i] *= -1;
-            estado[i+1] *= -1;
+        if(aux[i] == 1 && aux[i+1] == -1){
+            aux[i] *= -1;
+            aux[i+1] *= -1;
             i+=1;
         }
     }
 
-    return estado;
+    return aux;
 }
 
 int ehIgual(int *estado1, int *estado2){
