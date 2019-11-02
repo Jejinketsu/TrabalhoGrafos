@@ -39,19 +39,22 @@ int main(){
     rotaFinal[0] = calloc(possibilidades, sizeof(int));
 
     geraEstados(estados);
+
     /* mostrar todos os estados
     for(int i = 0; i < possibilidades; i++) {
         printf("%d ", i+1);
         printEstado(estados[i]);
     }
     */
+
     montaTubo(&grafo, estados, possibilidades);
+
     /* mostrar as adjacencias
     for(int i = 0; i < possibilidades; i++) printf("%d ", grafo->arestas[i]);
     printf("\n");
     */
 
-    rotaFinal = montaRota(&grafo, 13, 31, visitados, rotaFinal, 0);
+    rotaFinal = montaRota(&grafo, 21, 31, visitados, rotaFinal, 0);
     
     printf("Menor rota: ");
     for(int i = 1; i < possibilidades && rotaFinal[0][i] != 0; i++) printf("%d ", rotaFinal[0][i]);
