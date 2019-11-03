@@ -43,6 +43,11 @@ Fila *enqueue(Fila *fila, int vertice);
 Fila *dequeue(Fila **fila);
 void showFila(Fila *fila);
 
+//Entrada
+int ehIgual(int *estado1, int *estado2);
+int traduzEstado(int **estados, int *estado);
+int * entrada();
+
 int main(){
 
     int possibilidades = pow(PINOS, DISCOS);
@@ -68,6 +73,10 @@ int main(){
                     estados[cont][2] = k+1;
                     estados[cont][3] = l+1;
                     cont++;
+                    /*  Mostra todos os estados do jogo
+                        printf("%d ", cont); printEstado(estados[cont-1]);
+                        printf("\n");
+                    */
                 }
             }
         }
@@ -75,7 +84,12 @@ int main(){
 
     montaHanoi(&grafo, estados, possibilidades);
 
-    rotaFinal = buscaLargura(&grafo, 1, possibilidades, visitados, rotaFinal, 0);
+    /*  ENTRADA
+        A entrada é composta por 4 números representando um estado do tubo.
+    */
+    int *estado = entrada();
+
+    rotaFinal = buscaLargura(&grafo, traduzEstado(estados, estado), possibilidades, visitados, rotaFinal, 0);
     printf("Maior rota: ");
     for(int i = 1; i < possibilidades && rotaFinal[0][i] != 0; i++) printf("%d ", rotaFinal[0][i]);
     printf("\n");
@@ -303,4 +317,32 @@ void showFila(Fila *fila){
         printf("%d ", fila->vertice);
         showFila(fila->prox);
     }
+}
+
+int ehIgual(int *estado1, int *estado2){
+    int ehIgual = 1;
+
+    int tam = DISCOS;
+    for(int i = 0; i < tam && ehIgual != 0; i++){
+        if(estado1[i] != estado2[i]) ehIgual = 0;
+    }
+
+    return ehIgual;
+}
+
+int traduzEstado(int **estados, int *estado){
+    int tam = pow(PINOS, DISCOS), num, *aux;
+    for(int i = 0; i < tam-1; i++){
+        aux = estados[i];
+        if(ehIgual(estado, aux)){
+            num = i+1;
+        }
+    }
+    return num;
+}
+
+int * entrada(){
+    int *estado = calloc(DISCOS, sizeof(int));
+    for(int i = 0; i < DISCOS; i++) scanf("%d", &estado[i]);
+    return estado;
 }

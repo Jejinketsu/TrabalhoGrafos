@@ -27,6 +27,10 @@ int contem(int *lista, int tam, int num);
 int length(int *lista, int tam);
 void printEstado(int *estado);
 
+//Entrada
+int traduzEstado(int **estados, int *estado);
+int * entrada();
+
 int main(){
 
     int possibilidades = 31;
@@ -54,7 +58,14 @@ int main(){
     printf("\n");
     */
 
-    rotaFinal = montaRota(&grafo, 21, 31, visitados, rotaFinal, 0);
+
+    /*  ENTRADA
+        A primeira linha da entrada contem um inteiro N representando o número de elementos do estado origem.
+        A segunda linha recebe N números representando um estado do tubo.
+    */
+    int *estado = entrada();
+
+    rotaFinal = montaRota(&grafo, traduzEstado(estados, estado), 31, visitados, rotaFinal, 0);
     
     printf("Menor rota: ");
     for(int i = 1; i < possibilidades && rotaFinal[0][i] != 0; i++) printf("%d ", rotaFinal[0][i]);
@@ -308,4 +319,23 @@ void printEstado(int *estado){
     printf("(");
     for(int i = 0; i < tam-1; i++) printf("%d,", estado[i]);
     printf("%d)\n", estado[tam-1]);
+}
+
+int traduzEstado(int **estados, int *estado){
+    int tam = 31, num, *aux;
+    for(int i = 0; i < tam-1; i++){
+        aux = estados[i];
+        if(ehIgual(estado, aux)){
+            num = i+1;
+        }
+    }
+    return num;
+}
+
+int * entrada(){
+    int tamanho;
+    scanf("%d", &tamanho);
+    int *estado = calloc(tamanho, sizeof(int));
+    for(int i = 0; i < tamanho; i++) scanf("%d", &estado[i]);
+    return estado;
 }

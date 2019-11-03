@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define NUM_VERTS 6
+int NUM_VERTS;
 
 #define WHITE 0
 #define GRAY 1
@@ -18,6 +18,7 @@ typedef struct Fila{
     struct Fila *prox; 
 } Fila;
 
+void montaGrafo(Grafo **gr);
 Grafo * criaGrafo(int vertices, int ehPonderado);
 void inserirAresta(Grafo **gr, int origem, int destino, int peso, int ehDigrafo);
 int ** buscaProfundidade(Grafo **gr, int origem, int *visitados, int **rotaFinal, int passos, int dinheiro);
@@ -41,21 +42,22 @@ int main(){
     rotaFinal[0] = calloc(NUM_VERTS, sizeof(int));
     rotaFinal[1] = calloc(NUM_VERTS, sizeof(int));
 
-    grafo = criaGrafo(NUM_VERTS, 1);
-    inserirAresta(&grafo, 1, 2, 3, 0);
-    inserirAresta(&grafo, 1, 5, 4, 0);
-    inserirAresta(&grafo, 1, 6, 6, 0);
-    inserirAresta(&grafo, 4, 6, 2, 0);
-    inserirAresta(&grafo, 4, 2, 5, 0);
-    inserirAresta(&grafo, 4, 3, 7, 0);
-    inserirAresta(&grafo, 2, 3, 2, 0);
-    inserirAresta(&grafo, 5, 6, 3, 0);
-
-    /*
-    inserirAresta(&grafo, 1, 2, 4, 0);
-    inserirAresta(&grafo, 2, 3, 4, 0);
-    inserirAresta(&grafo, 3, 1, 4, 0);
+    /*  ENTRADA
+        A primeira linha da entrada recebe dois inteiros V e A representando o numero
+        de vertices e o numero de arestas, respectivamente.
+        As A linhas seguintes são compostas por três inteiros O, D, P representando a
+        origem, destino e peso, respectivamente. EX:
+        6 8
+        1 2 3
+        1 5 4
+        1 6 6
+        4 6 2
+        4 2 5
+        4 3 7
+        2 3 2
+        5 6 3
     */
+    montaGrafo(&grafo);
 
     rotaFinal = buscaProfundidade(&grafo, 1, visitados, rotaFinal, 0, 16);
     printf("Melhor rota com profundidade: ");
@@ -67,6 +69,20 @@ int main(){
     for(int i = 1; i < NUM_VERTS; i++) printf("%d ", rotaFinal[1][i]);
     printf("\n");
     return 0;
+}
+
+void montaGrafo(Grafo **gr){
+
+    int origem, destino, peso, arestas;
+
+    scanf("%d %d", &NUM_VERTS, &arestas);
+    *gr = criaGrafo(NUM_VERTS, 1);
+    
+    for(int i = 0; i < arestas; i++){
+        scanf("%d %d %d", &origem, &destino, &peso);
+        inserirAresta(gr, origem, destino, peso, 0);
+    }
+
 }
 
 Grafo * criaGrafo(int vertices, int ehPonderado){
