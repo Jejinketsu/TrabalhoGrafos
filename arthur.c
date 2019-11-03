@@ -21,13 +21,15 @@ typedef struct Fila{
 Grafo * criaGrafo(int vertices, int ehPonderado);
 void inserirAresta(Grafo **gr, int origem, int destino, int peso, int ehDigrafo);
 int ** buscaProfundidade(Grafo **gr, int origem, int *visitados, int **rotaFinal, int passos, int dinheiro);
-void buscaLargura(Grafo **gr, int origem);
+void buscaLargura(Grafo **gr, int origem, int **rotaFinal, int dinheiro);
 
 int contem(int *lista, int tam, int num);
 
 // Funções para registrar rota
+int montaRota(Grafo **gr, int origem, int **rotaFinal, int dinheiro);
 int length(int *lista);
-void copyList(int **copia, int *original);
+void append(int **copia, int valor, int local);
+void copyList(int **copia, int *original, int tam, int local);
 Fila *enqueue(Fila *fila, int vertice);
 Fila *dequeue(Fila **fila);
 void showFila(Fila *fila);
@@ -37,6 +39,7 @@ int main(){
     int *visitados = calloc(NUM_VERTS, sizeof(int));
     int **rotaFinal = malloc(sizeof(int*));
     rotaFinal[0] = calloc(NUM_VERTS, sizeof(int));
+    rotaFinal[1] = calloc(NUM_VERTS, sizeof(int));
 
     grafo = criaGrafo(NUM_VERTS, 1);
     inserirAresta(&grafo, 1, 2, 3, 0);
@@ -59,8 +62,9 @@ int main(){
     for(int i = 1; i < NUM_VERTS; i++) printf("%d ", rotaFinal[0][i]);
     printf("\n");
 
-    buscaLargura(&grafo, 1);
-    for(int i = 0; i < NUM_VERTS; i++) printf("%d ", grafo->dist[i]);
+    buscaLargura(&grafo, 1, rotaFinal, 16);
+    printf("Melhor rota com largura: ");
+    for(int i = 1; i < NUM_VERTS; i++) printf("%d ", rotaFinal[1][i]);
     printf("\n");
     return 0;
 }
@@ -117,7 +121,7 @@ int ** buscaProfundidade(Grafo **gr, int origem, int *visitados, int **rotaFinal
         visitados[passos] = origem;
 
         if(length(*rotaFinal) < length(visitados)){
-            copyList(rotaFinal, visitados);
+            copyList(rotaFinal, visitados, NUM_VERTS, 0);
         }
 
         for(int i = 0; i < (*gr)->grau[origem-1]; i++){
@@ -132,7 +136,7 @@ int ** buscaProfundidade(Grafo **gr, int origem, int *visitados, int **rotaFinal
     return rotaFinal;
 }
 
-void buscaLargura(Grafo **gr, int origem){
+void buscaLargura(Grafo **gr, int origem, int **rotaFinal, int dinheiro){
     (*gr)->cor[origem-1] = GRAY;
     (*gr)->dist[origem-1] = 0;
     (*gr)->anterior[origem-1] = -1;
@@ -151,6 +155,26 @@ void buscaLargura(Grafo **gr, int origem){
         }
         (*gr)->cor[aux->vertice-1] = BLACK;
     }
+    montaRota(gr, origem, rotaFinal, dinheiro);
+}
+
+int montaRota(Grafo **gr, int origem, int **rotaFinal, int dinheiro){
+    if(gr != NULL) {
+        int tamanho = NUM_VERTS;
+
+        if(!contem(rotaFinal[1], tamanho, origem)) append(rotaFinal, origem, 1);
+
+        if(dinheiro > 0){
+            for(int i = 0; i < (*gr)->grau[origem-1]; i++){
+                if(!contem(rotaFinal[1], tamanho, (*gr)->arestas[origem-1][i]) && dinheiro >= (*gr)->pesos[origem-1][i]){
+                    if((*gr)->anterior[(*gr)->arestas[origem-1][i]-1] == origem){
+                        dinheiro = montaRota(gr, (*gr)->arestas[origem-1][i], rotaFinal, dinheiro-(*gr)->pesos[origem-1][i]);
+                    }
+                }
+            }
+        }
+    }
+    return dinheiro;
 }
 
 int contem(int *lista, int tam, int num){
@@ -168,8 +192,16 @@ int length(int *lista){
     return cont;
 }
 
-void copyList(int **copia, int *original){
-    for(int i = 0; i < NUM_VERTS && original[i] != 0; i++, copia[0][i] = original[i]);
+void append(int **copia, int valor, int local){
+    int i;
+    for(i = 0; i < NUM_VERTS && copia[local][i] != 0; i++);
+    if(i < NUM_VERTS) copia[local][i] = valor;
+}
+
+void copyList(int **copia, int *original, int tam, int local){
+    int i = 0;
+    for(i = 0; i < tam && original[i] != 0; i++, copia[local][i] = original[i]);
+    for(i; i < tam; i++) copia[local][i] = 0;
 }
 
 Fila *enqueue(Fila *fila, int vertice){

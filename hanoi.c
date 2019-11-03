@@ -21,12 +21,12 @@ typedef struct Fila{
 } Fila;
 
 
-void printEstado(int *atual);
-int contem(int *lista, int tam, int num);
 Grafo * criaGrafo(int vertices, int ehPonderado);
 void inserirAresta(Grafo **gr, int origem, int destino, int peso, int ehDigrafo);
 int ** montaRota(Grafo **gr, int origem, int destino, int *visitados, int **rotaFinal, int passos);
 int ** buscaLargura(Grafo **gr, int origem, int destino, int *visitados, int **rotaFinal, int passos);
+void printEstado(int *atual);
+int contem(int *lista, int tam, int num);
 
 // Funções para montar o grafo
 void montaHanoi(Grafo **gr, int **estados, int tamanho);
@@ -76,7 +76,6 @@ int main(){
     montaHanoi(&grafo, estados, possibilidades);
 
     rotaFinal = buscaLargura(&grafo, 1, possibilidades, visitados, rotaFinal, 0);
-    /*
     printf("Maior rota: ");
     for(int i = 1; i < possibilidades && rotaFinal[0][i] != 0; i++) printf("%d ", rotaFinal[0][i]);
     printf("\n");
@@ -85,9 +84,9 @@ int main(){
     for(int i = 1; i < possibilidades && rotaFinal[1][i] != 0; i++) printf("%d ", rotaFinal[1][i]);
     printf("\n");
 
+    /*
     for(int i = 0; i < possibilidades; i++) printf("%d ", grafo->dist[i]);
     printf("\n");
-    */
 
     for(int i = 0; i < 3; i++) {
         for(int j = 0; j < possibilidades; j++) {
@@ -100,6 +99,7 @@ int main(){
         printEstado(estados[i]);
         printf(" %d\n", (i+1));
     }
+    */
     return 0;
 }
 
@@ -118,7 +118,7 @@ Grafo * criaGrafo(int vertices, int ehPonderado){
 
         gr->arestas = (int**) malloc(vertices*sizeof(int*));
         for(int i = 0; i < vertices; i++)
-            gr->arestas[i] = (int*) calloc(vertices, sizeof(int));
+            gr->arestas[i] = (int*) calloc(PINOS, sizeof(int));
 
         if(gr->ehPonderado){
             gr->pesos = (int**) malloc(vertices * sizeof(int*));
