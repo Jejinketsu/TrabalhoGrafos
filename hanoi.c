@@ -23,7 +23,6 @@ typedef struct Fila{
 
 Grafo * criaGrafo(int vertices, int ehPonderado);
 void inserirAresta(Grafo **gr, int origem, int destino, int peso, int ehDigrafo);
-int ** montaRota(Grafo **gr, int origem, int destino, int *visitados, int **rotaFinal, int passos);
 int ** buscaLargura(Grafo **gr, int origem, int destino, int *visitados, int **rotaFinal, int passos);
 void printEstado(int *atual);
 int contem(int *lista, int tam, int num);
@@ -37,6 +36,7 @@ int posDiff(int *vetor1, int *vetor2, int tamanho);
 int contEquals(int *vetor1, int *vetor2, int tamanho);
 
 // Funções para registrar rota
+int ** montaRota(Grafo **gr, int origem, int destino, int *visitados, int **rotaFinal, int passos);
 int length(int *lista, int tam);
 void copyList(int **copia, int *original, int tam, int local);
 Fila *enqueue(Fila *fila, int vertice);

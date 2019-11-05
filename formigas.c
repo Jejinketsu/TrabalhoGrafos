@@ -18,10 +18,10 @@ int temColisao(int *estado);
 int temSaida(int *estado);
 int * resolveSaida(int *estado);
 int * resolveColisao(int *estado);
-void copyList(int **copia, int *original, int tam);
-int ehIgual(int *estado1, int *estado2);
 
 //Auxiliares
+void copyList(int **copia, int *original, int tam);
+int ehIgual(int *estado1, int *estado2);
 int tamEstado(int *tamEstado);
 int contem(int *lista, int tam, int num);
 int length(int *lista, int tam);
