@@ -228,10 +228,10 @@ int temColisao(int *estado){
 }
 
 int temSaida(int *estado){
-    int houveColisao = 0;
+    int houveSaida = 0;
     int tam = tamEstado(estado);
-    if(estado[0] == -1 || estado[tam-1] == 1) houveColisao = 1;
-    return houveColisao;
+    if(estado[0] == -1 || estado[tam-1] == 1) houveSaida = 1;
+    return houveSaida;
 }
 
 int * resolveSaida(int *estado){

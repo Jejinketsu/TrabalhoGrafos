@@ -56,15 +56,15 @@ int main(){
         de vertices e o numero de arestas, respectivamente.
         As A linhas seguintes são compostas por três inteiros O, D, P representando a
         origem, destino e peso, respectivamente. EX:
-        6 8
-        1 2 3
-        1 5 4
-        1 6 6
-        4 6 2
-        4 2 5
-        4 3 7
-        2 3 2
-        5 6 3
+6 8
+1 2 3
+1 5 4
+1 6 6
+4 6 2
+4 2 5
+4 3 7
+2 3 2
+5 6 3
     */
     montaGrafo(&grafo);
     for(int j = 0; j < TESTES; j++){
@@ -198,7 +198,7 @@ int buscaLargura(Grafo **gr, int origem, int **rotaFinal, int dinheiro){
     (*gr)->anterior[origem-1] = -1;
     (*gr)->dinheiro[origem-1] = dinheiro;
     Fila *agendados = NULL;
-    int troco = dinheiro, final = 0;;
+    int troco = dinheiro, final = 0;
 
     agendados = enqueue(agendados, origem);
     while(agendados != NULL){

@@ -192,9 +192,9 @@ int ** montaRota(Grafo **gr, int origem, int destino, int *visitados, int **rota
         visitados[passos] = origem;
 
         if(length(rotaFinal[0], tamanho) < length(visitados, tamanho)){
-            if(contem(visitados, tamanho, tamanho)) copyList(rotaFinal, visitados, tamanho, 0);
+            if(contem(visitados, tamanho, destino)) copyList(rotaFinal, visitados, tamanho, 0);
         } else if(length(rotaFinal[1], tamanho) > length(visitados, tamanho) || length(rotaFinal[1], tamanho) == 0){
-            if(contem(visitados, tamanho, tamanho)) copyList(rotaFinal, visitados, tamanho, 1);
+            if(contem(visitados, tamanho, destino)) copyList(rotaFinal, visitados, tamanho, 1);
         }
 
         if(origem != destino){
